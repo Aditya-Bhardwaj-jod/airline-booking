@@ -1,20 +1,5 @@
 require('dotenv').config();
 
-/**
- * Centralized environment config.
- * Why: every other file imports FROM here, never from process.env directly.
- * This means if we rename an env var, we change it in ONE place.
- * It also lets us throw a clear error at boot time if something critical is missing,
- * instead of getting a cryptic crash 10 minutes later when a route is hit.
- */
-const required = ['MONGO_URI', 'JWT_SECRET'];
-
-for (const key of required) {
-    if (!process.env[key]) {
-        throw new Error(`Missing required environment variable: ${key}`);
-    }
-}
-
 module.exports = {
     nodeEnv: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT, 10) || 5000,
@@ -26,6 +11,7 @@ module.exports = {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
     },
+
     jwt: {
         secret: process.env.JWT_SECRET,
         expiresIn: process.env.JWT_EXPIRES_IN || '15m',
