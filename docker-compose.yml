@@ -1,0 +1,82 @@
+version: '3.9'
+
+# WHY REPLICA SET for MongoDB:
+# MongoDB transactions (which we use in booking + cancel) require a replica set.
+# A standalone MongoDB instance does NOT support multi-document transactions.
+# In production you'd have 3 nodes; here we run a single-node replica set
+# (mongo1 only) — enough for transactions in dev/staging without 3 containers.
+
+services:
+  # ---- MongoDB single-node replica set ----
+  mongo:
+    image: mongo:7
+    container_name: airline_mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      # Init script runs once on first container start to initiate the replica set
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - airline_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- Redis ----
+  redis:
+    image: redis:7-alpine
+    container_name: airline_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - airline_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ---- Node API ----
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: airline_api
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    environment:
+      # Override localhost refs to use Docker service names
+      MONGO_URI: mongodb://mongo:27017/airline_booking?replicaSet=rs0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - airline_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - ./server/src/logs:/app/src/logs  # persist logs outside container
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  airline_net:
+    driver: bridge
