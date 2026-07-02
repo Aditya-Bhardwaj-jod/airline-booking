@@ -2,20 +2,28 @@ const app = require('./app');
 const env = require('./config/env');
 const connectDB = require('./config/db');
 const logger = require('./config/logger');
-require('./config/redisClient'); // side-effect import: initializes the shared Redis connection
+require('./config/redisClient');
 
-/**
- * Why server.js is separate from app.js:
- * - app.js exports a pure Express app (no side effects) -> Supertest can import it
- *   directly in tests WITHOUT starting a real server or DB connection.
- * - server.js is the only file that actually calls app.listen() and connects to DB.
- */
-const start = async () => {
-  await connectDB();
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION:', err);
+    process.exit(1);
+});
 
-  app.listen(env.port, () => {
-    logger.info(`Server running on port ${env.port} [${env.nodeEnv}]`);
-  });
+process.on('unhandledRejection', (err) => {
+    console.error('UNHANDLED REJECTION:', err);
+    process.exit(1);
+});
+
+const start = async() => {
+    try {
+        await connectDB();
+        app.listen(env.port, () => {
+            console.log(`Server running on port ${env.port}`);
+        });
+    } catch (err) {
+        console.error('STARTUP ERROR:', err);
+        process.exit(1);
+    }
 };
 
 start();
