@@ -234,4 +234,4 @@ Tests cover: Auth (signup, login, error cases) + Rate Limiter algorithm (allow, 
 
 ## Author
 
-**Aditya Bhardwaj** — [GitHub](https://github.com/Aditya-Bhardwaj-jod)
+**Aditya Bhardwaj** — [GitHub](https://github.com/Aditya-Bhardwaj-jod) 
