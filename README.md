@@ -7,7 +7,7 @@ A full-stack airline ticket booking system inspired by MakeMyTrip's flight modul
 ## Architecture
 
 ``` 
-Client (React + Vite)
+Client (React + Vite) 
         │
         ▼
 Express API (Node.js)
