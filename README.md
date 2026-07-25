@@ -3,7 +3,7 @@
 A full-stack airline ticket booking system inspired by MakeMyTrip's flight module. Built to demonstrate production-grade backend architecture with custom Redis-based rate limiting and seat locking.
  
 ---
- 
+
 ## Architecture 
 
 ``` 
