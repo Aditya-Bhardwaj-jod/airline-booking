@@ -23,7 +23,7 @@ MongoDB    Redis
 Route → Middleware (optionalAuth → rateLimiter → validate) → Controller → Service → Repository → DB
 ```
 
----
+--- 
 
 ## Key Features & USPs
 
